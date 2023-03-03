@@ -38,3 +38,12 @@ run-api: venv
 
 pre-commit: venv
 	$(SOURCE_VENV) && pre-commit clean && pre-commit install && pre-commit run
+
+docker-build:
+	docker build -t app .
+
+up: docker-build
+	docker compose up -d
+
+down:
+	docker compose down

@@ -1,5 +1,6 @@
 """This module contains the serve function."""
 import logging
+import time
 
 import requests
 
@@ -14,9 +15,11 @@ def serve() -> bool:
     by printing the string 'started'.
     """
     response = ''
-    try:
-        response = str(requests.get('http://127.0.0.1:8000').content)
-    except requests.exceptions.ConnectionError:
-        logger.info('Got Nothing')
-    print('started', response)
+    while True:
+        try:
+            time.sleep(1)
+            response = str(requests.get('http://my_alias_c:8000').content)
+            print('started', response)
+        except requests.exceptions.ConnectionError:
+            logger.info('Got Nothing')
     return True
