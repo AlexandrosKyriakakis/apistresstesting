@@ -16,5 +16,4 @@ if __name__ == '__main__':
         time.sleep(10)
         rest()
     else:
-        logger.error('ERROR ENV VAR')
-        logger.error('ROLE: %s', os.getenv('ROLE'))
+        logger.error('wrong env variable ROLE: %s', os.getenv('ROLE'))
