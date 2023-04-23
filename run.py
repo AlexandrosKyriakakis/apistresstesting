@@ -6,14 +6,16 @@ import config.enum as enum
 from config.logger import logger
 from src.pubsub.pubsub import pubsub
 from src.rest.rest import rest
+from src.rmq.rmq import rmq
 
 if __name__ == '__main__':
     cfg = Env()
+    time.sleep(10)
     if cfg.ROLE in enum.red_panda_roles:
-        time.sleep(10)
         pubsub()
     elif cfg.ROLE in enum.api_roles:
-        time.sleep(10)
         rest()
+    elif cfg.ROLE in enum.rmq_roles:
+        rmq()
     else:
         logger.error('wrong env variable ROLE: %s', os.getenv('ROLE'))

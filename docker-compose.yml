@@ -24,6 +24,18 @@ services:
         unzip rpk-linux-amd64.zip -d ~/rpk &&
         tail -f /dev/null
 
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    networks:
+      - my_network
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
   redpanda-0:
     command:
       - redpanda
@@ -127,6 +139,7 @@ services:
     image: app
     depends_on:
       - redpanda-0
+      - redpanda-producer
     environment:
       ROLE: "RED_PANDA_CONSUMER"
     networks:
@@ -146,6 +159,41 @@ services:
       - redpanda-0
     environment:
       ROLE: "RED_PANDA_PRODUCER"
+    networks:
+      - my_network
+        #ipv4_address: 172.28.0.7
+        #aliases:
+        #  - my_alias_e
+    entrypoint:
+      - 'bash'
+      - '-c'
+      - |
+        python3 run.py
+
+  rmq-producer:
+    image: app
+    depends_on:
+      - rabbitmq
+    environment:
+      ROLE: "RMQ_PRODUCER"
+    networks:
+      - my_network
+        #ipv4_address: 172.28.0.7
+        #aliases:
+        #  - my_alias_e
+    entrypoint:
+      - 'bash'
+      - '-c'
+      - |
+        python3 run.py
+
+  rmq-consumer:
+    image: app
+    depends_on:
+      - rabbitmq
+      - rmq-producer
+    environment:
+      ROLE: "RMQ_CONSUMER"
     networks:
       - my_network
         #ipv4_address: 172.28.0.7

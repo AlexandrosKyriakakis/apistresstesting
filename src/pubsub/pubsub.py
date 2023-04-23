@@ -21,7 +21,7 @@ def pubsub():
                 ],
                 cfg.RED_PANDA_CONSUMER_GROUP,
             )
-            logger.info('consume redpanda message: %s', next(cons))
+            logger.info('consumed redpanda message: %s', next(cons))
 
         elif cfg.ROLE == enum.ROLE_RED_PANDA_PRODUCER:
             response = requests.get(cfg.EXTERNAL_HOST)

@@ -11,14 +11,18 @@ class Env:
         self.ROLE = ''
         self.EXTERNAL_HOST = 'http://example.com'
 
+        # API
+        self.API_SERVER_HOST = 'http://api-producer:8000'
+
         # RED PANDA
         self.RED_PANDA_BROKER_0 = 'redpanda-0:9092'
         self.RED_PANDA_TOPIC = 'test_topic'
         self.RED_PANDA_KEY = b'test_key'
         self.RED_PANDA_CONSUMER_GROUP = 'test_consumer_group'
 
-        # API
-        self.API_SERVER_HOST = 'http://api-producer:8000'
+        # RMQ
+        self.RMQ_HOST = 'rabbitmq'
+        self.RMQ_QUEUE_NAME = 'test_queue'
 
         self.__get_env_vars()
         return
