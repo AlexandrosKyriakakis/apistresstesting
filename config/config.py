@@ -1,14 +1,25 @@
-import logging
 import os
 
-logging.basicConfig(level='DEBUG')
-logger = logging.getLogger('api-stress-testing')
+from config.logger import logger
 
 
 class Env:
     def __init__(self):
+        # APP
         self.APP_NAME = 'api-stress-testing'
         self.LOG_LEVEL = 'DEBUG'
+        self.ROLE = ''
+        self.EXTERNAL_HOST = 'http://example.com'
+
+        # RED PANDA
+        self.RED_PANDA_BROKER_0 = 'redpanda-0:9092'
+        self.RED_PANDA_TOPIC = 'test_topic'
+        self.RED_PANDA_KEY = b'test_key'
+        self.RED_PANDA_CONSUMER_GROUP = 'test_consumer_group'
+
+        # API
+        self.API_SERVER_HOST = 'http://api-producer:8000'
+
         self.__get_env_vars()
         return
 

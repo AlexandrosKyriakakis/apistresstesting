@@ -34,7 +34,7 @@ run: venv
 	$(SOURCE_VENV) && $(PYTHON_INTERPRETER) run.py
 
 run-api: venv
-	$(SOURCE_VENV) && cd src/api  && uvicorn api:app --reload
+	$(SOURCE_VENV) && cd src/rest  && uvicorn api:app --reload
 
 pre-commit: venv
 	$(SOURCE_VENV) && pre-commit clean && pre-commit install && pre-commit run
