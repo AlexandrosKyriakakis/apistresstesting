@@ -3,9 +3,9 @@ import requests
 import config.enum as enum
 from config.config import Env
 from config.logger import logger
-from src.pubsub.admin import create_topics
-from src.pubsub.consume import consume
-from src.pubsub.produce import produce
+from src.redpanda.admin import create_topics
+from src.redpanda.consume import consume
+from src.redpanda.produce import produce
 
 
 def pubsub():

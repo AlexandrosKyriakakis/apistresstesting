@@ -24,6 +24,13 @@ class Env:
         self.RMQ_HOST = 'rabbitmq'
         self.RMQ_QUEUE_NAME = 'test_queue'
 
+        # POSTGRES
+        self.DB_HOST = 'db'
+        self.DB_NAME = 'metabase'
+        self.DB_PORT = '5432'
+        self.DB_USER = 'metabase'
+        self.DB_PASSWORD = 'db_password'
+
         self.__get_env_vars()
         return
 

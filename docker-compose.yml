@@ -22,7 +22,44 @@ services:
         curl -LO https://github.com/redpanda-data/redpanda/releases/latest/download/rpk-linux-amd64.zip &&
         mkdir -p ~/.local/bin &&
         unzip rpk-linux-amd64.zip -d ~/rpk &&
+        apt-get install -y postgresql-client &&
         tail -f /dev/null
+
+  db:
+    image: postgres:15.2-alpine
+    restart: always
+    environment:
+        POSTGRES_HOST_AUTH_METHOD: trust
+        POSTGRES_DB: metabase
+        POSTGRES_USER: metabase
+        POSTGRES_PASSWORD: db_password
+    volumes:
+        - db_data:/var/lib/postgresql/data
+    ports:
+    - 5432:5432
+    networks:
+      - my_network
+
+  dataviz:
+    image: metabase/metabase:latest
+    container_name: metabase
+    restart: always
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: 5432
+      MB_DB_USER: metabase
+      MB_DB_PASS: db_password
+      MB_DB_HOST: db
+      MB_DB_FILE: /metabase-data/metabase.db
+    depends_on:
+    - db
+    volumes:
+    - dataviz_data:/metabase-data
+    ports:
+    - 3000:3000
+    networks:
+      - my_network
 
   rabbitmq:
     image: rabbitmq:management
@@ -105,6 +142,9 @@ services:
 
   api-consumer:
     image: app
+    depends_on:
+      - db
+      - api-producer
     networks:
       - my_network
         # ipv4_address: 172.28.0.5
@@ -121,7 +161,7 @@ services:
   api-producer:
     image: app
     depends_on:
-      - redpanda-0
+      - db
     ports:
       - "8000:8000"
     networks:
@@ -140,6 +180,7 @@ services:
     depends_on:
       - redpanda-0
       - redpanda-producer
+      - db
     environment:
       ROLE: "RED_PANDA_CONSUMER"
     networks:
@@ -157,6 +198,7 @@ services:
     image: app
     depends_on:
       - redpanda-0
+      - db
     environment:
       ROLE: "RED_PANDA_PRODUCER"
     networks:
@@ -174,6 +216,7 @@ services:
     image: app
     depends_on:
       - rabbitmq
+      - db
     environment:
       ROLE: "RMQ_PRODUCER"
     networks:
@@ -192,6 +235,7 @@ services:
     depends_on:
       - rabbitmq
       - rmq-producer
+      - db
     environment:
       ROLE: "RMQ_CONSUMER"
     networks:
@@ -209,6 +253,8 @@ services:
 
 volumes:
     redpanda-0: null
+    db_data:
+    dataviz_data:
 networks:
   my_network:
     driver: bridge
