@@ -25,9 +25,31 @@ services:
         apt-get install -y postgresql-client &&
         tail -f /dev/null
 
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - my_network
+
+  grafana:
+    image: grafana/grafana:latest
+    depends_on:
+      - prometheus
+    volumes:
+      - ./grafana/dashboards:/etc/grafana/dashboards
+    ports:
+      - "3001:3000" # TODO Update Ports
+    networks:
+      - my_network
+
   db:
     image: postgres:15.2-alpine
     restart: always
+    depends_on:
+      - prometheus
     environment:
         POSTGRES_HOST_AUTH_METHOD: trust
         POSTGRES_DB: metabase
@@ -64,6 +86,8 @@ services:
   rabbitmq:
     image: rabbitmq:management
     container_name: rabbitmq
+    depends_on:
+      - prometheus
     networks:
       - my_network
     environment:
@@ -74,6 +98,8 @@ services:
       - "15672:15672"
 
   redpanda-0:
+    depends_on:
+      - prometheus
     command:
       - redpanda
       - start
@@ -145,6 +171,7 @@ services:
     depends_on:
       - db
       - api-producer
+      - prometheus
     networks:
       - my_network
         # ipv4_address: 172.28.0.5
@@ -162,6 +189,7 @@ services:
     image: app
     depends_on:
       - db
+      - prometheus
     ports:
       - "8000:8000"
     networks:
@@ -181,6 +209,7 @@ services:
       - redpanda-0
       - redpanda-producer
       - db
+      - prometheus
     environment:
       ROLE: "RED_PANDA_CONSUMER"
     networks:
@@ -199,6 +228,7 @@ services:
     depends_on:
       - redpanda-0
       - db
+      - prometheus
     environment:
       ROLE: "RED_PANDA_PRODUCER"
     networks:
@@ -217,6 +247,7 @@ services:
     depends_on:
       - rabbitmq
       - db
+      - prometheus
     environment:
       ROLE: "RMQ_PRODUCER"
     networks:
@@ -236,8 +267,11 @@ services:
       - rabbitmq
       - rmq-producer
       - db
+      - prometheus
     environment:
       ROLE: "RMQ_CONSUMER"
+    ports:
+      - "5001:5000" # TODO Update ports
     networks:
       - my_network
         #ipv4_address: 172.28.0.7

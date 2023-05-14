@@ -8,11 +8,17 @@ from src.redpanda.pubsub import pubsub
 from src.rest.rest import rest
 from src.rmq.rmq import rmq
 from src.postgres.init_db import init_db
+from prometheus_client import start_http_server
+
 
 if __name__ == '__main__':
     cfg = Env()
     time.sleep(10)
     init_db()
+
+    # Start up the server to expose the metrics.
+    start_http_server(5000)
+
     if cfg.ROLE in enum.red_panda_roles:
         pubsub()
     elif cfg.ROLE in enum.api_roles:
