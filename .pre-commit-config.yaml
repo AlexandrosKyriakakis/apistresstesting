@@ -1,39 +1,50 @@
+---
 default_language_version:
-    python: python3.10.11
+    python: python3.11.3
 repos:
     - repo: https://github.com/asottile/pyupgrade
-      rev: v3.3.1
+      rev: v3.4.0
       hooks:
-      - id: pyupgrade
+          - id: pyupgrade
     - repo: https://github.com/ambv/black
-      rev: 23.1.0
+      rev: 23.3.0
       hooks:
-      - id: black
-        additional_dependencies: ['click==8.0.4']
-        description: 'Black formatting'
-        args:
-          - "--config"
-          - "./pyproject.toml"
+          - id: black
+            additional_dependencies: [click==8.0.4]
+            description: Black formatting
+            args:
+                - --config
+                - ./pyproject.toml
     - repo: https://github.com/pre-commit/pre-commit-hooks
       rev: v4.4.0
       hooks:
-      - id: trailing-whitespace
-        description: 'Trims trailing whitespace'
-        exclude: /README\.rst$|\.pot?$
-      - id: end-of-file-fixer
-        description: 'Makes sure files end in a newline and only a newline.'
-      - id: debug-statements
-        description: 'Check for debugger imports and breakpoints'
-      - id: check-docstring-first
-        description: 'Checks for a common error of placing code before the docstring'
-      - id: check-merge-conflict
-        description: 'Check for files that contain merge conflict strings'
-      - id: mixed-line-ending
-        description: 'Replaces or checks mixed line endings'
-      - id: double-quote-string-fixer
-        description: 'Replaces all double quotes to one single quotes'
+          - id: trailing-whitespace
+            description: Trims trailing whitespace
+            exclude: /README\.rst$|\.pot?$
+          - id: end-of-file-fixer
+            description: Makes sure files end in a newline and only a newline.
+          - id: debug-statements
+            description: Check for debugger imports and breakpoints
+          - id: check-docstring-first
+            description: Checks for a common error of placing code before the docstring
+          - id: check-merge-conflict
+            description: Check for files that contain merge conflict strings
+          - id: mixed-line-ending
+            description: Replaces or checks mixed line endings
+          - id: double-quote-string-fixer
+            description: Replaces all double quotes to one single quotes
     - repo: https://github.com/Lucas-C/pre-commit-hooks
-      rev: v1.4.2
+      rev: v1.5.1
       hooks:
-      - id: remove-crlf
-        description: 'Replace CRLF end-lines by LF ones before committing'
+          - id: remove-crlf
+            description: Replace CRLF end-lines by LF ones before committing
+    - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
+      rev: 0.2.3
+      hooks:
+          - id: yamlfmt
+            description: Format yaml files
+    - repo: https://github.com/asottile/reorder-python-imports
+      rev: v3.9.0
+      hooks:
+          - id: reorder-python-imports
+            description: Reorder Imports

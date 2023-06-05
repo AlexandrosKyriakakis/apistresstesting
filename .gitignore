@@ -169,4 +169,6 @@ dmypy.json
 results.xml
 
 .idea
-pytest-coverage.txt
+**/venv
+**/__pycache__
+*.pyc

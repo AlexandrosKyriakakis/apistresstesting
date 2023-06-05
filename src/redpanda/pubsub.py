@@ -1,6 +1,8 @@
 import time
+
 import requests
-import config.enum as enum
+
+from config import enum
 from config.config import Env
 from config.logger import logger
 from src.redpanda.admin import create_topics

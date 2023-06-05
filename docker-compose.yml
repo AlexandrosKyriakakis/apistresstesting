@@ -1,297 +1,299 @@
-version: "3.7"
+---
+version: '3.7'
 services:
-  linux-machine-for-testing:
-    image: ubuntu
-    networks:
-      - my_network
+    linux-machine-for-testing:
+        image: ubuntu
+        container_name: linux-machine-for-testing
+        networks:
+            - my_network
         #ipv4_address: 172.28.0.4
         #aliases:
         #  - my_alias_a
-    entrypoint:
-      - 'bash'
-      - '-c'
-      - |
-        apt-get update &&
-        apt-get install -y wget &&
-        apt-get install -y iputils-ping &&
-        apt -y install zsh &&
-        apt -y install git &&
-        sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)" &&
-        apt-get install curl -y &&
-        apt-get install unzip -y &&
-        curl -LO https://github.com/redpanda-data/redpanda/releases/latest/download/rpk-linux-amd64.zip &&
-        mkdir -p ~/.local/bin &&
-        unzip rpk-linux-amd64.zip -d ~/rpk &&
-        apt-get install -y postgresql-client &&
-        tail -f /dev/null
+        entrypoint:
+            - bash
+            - -c
+            - |
+              apt-get update &&
+              apt-get install -y wget &&
+              apt-get install -y iputils-ping &&
+              apt -y install zsh &&
+              apt -y install git &&
+              sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)" &&
+              apt-get install curl -y &&
+              apt-get install unzip -y &&
+              curl -LO https://github.com/redpanda-data/redpanda/releases/latest/download/rpk-linux-amd64.zip &&
+              mkdir -p ~/.local/bin &&
+              unzip rpk-linux-amd64.zip -d ~/rpk &&
+              apt-get install -y postgresql-client &&
+              tail -f /dev/null
 
-  prometheus:
-    image: prom/prometheus:latest
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-    networks:
-      - my_network
+    prometheus:
+        image: prom/prometheus:latest
+        ports:
+            - 9090:9090
+        volumes:
+            - ./prometheus.yml:/etc/prometheus/prometheus.yml
+        networks:
+            - my_network
 
-  grafana:
-    image: grafana/grafana:latest
-    depends_on:
-      - prometheus
-    volumes:
-      - ./grafana/dashboards:/etc/grafana/dashboards
-    ports:
-      - "3001:3000" # TODO Update Ports
-    networks:
-      - my_network
+    grafana:
+        image: grafana/grafana:latest
+        depends_on:
+            - prometheus
+        volumes:
+            - ./grafana/dashboards:/etc/grafana/dashboards
+        ports:
+            - 3001:3000 # TODO Update Ports
+        networks:
+            - my_network
 
-  db:
-    image: postgres:15.2-alpine
-    restart: always
-    depends_on:
-      - prometheus
-    environment:
-        POSTGRES_HOST_AUTH_METHOD: trust
-        POSTGRES_DB: metabase
-        POSTGRES_USER: metabase
-        POSTGRES_PASSWORD: db_password
-    volumes:
-        - db_data:/var/lib/postgresql/data
-    ports:
-    - 5432:5432
-    networks:
-      - my_network
+    db:
+        image: postgres:15.2-alpine
+        restart: always
+        depends_on:
+            - prometheus
+        environment:
+            POSTGRES_HOST_AUTH_METHOD: trust
+            POSTGRES_DB: metabase
+            POSTGRES_USER: metabase
+            POSTGRES_PASSWORD: db_password
+        volumes:
+            - db_data:/var/lib/postgresql/data
+        ports:
+            - 5432:5432
+        networks:
+            - my_network
 
-  dataviz:
-    image: metabase/metabase:latest
-    container_name: metabase
-    restart: always
-    environment:
-      MB_DB_TYPE: postgres
-      MB_DB_DBNAME: metabase
-      MB_DB_PORT: 5432
-      MB_DB_USER: metabase
-      MB_DB_PASS: db_password
-      MB_DB_HOST: db
-      MB_DB_FILE: /metabase-data/metabase.db
-    depends_on:
-    - db
-    volumes:
-    - dataviz_data:/metabase-data
-    ports:
-    - 3000:3000
-    networks:
-      - my_network
+    dataviz:
+        image: metabase/metabase:latest
+        container_name: metabase
+        restart: always
+        environment:
+            MB_DB_TYPE: postgres
+            MB_DB_DBNAME: metabase
+            MB_DB_PORT: 5432
+            MB_DB_USER: metabase
+            MB_DB_PASS: db_password
+            MB_DB_HOST: db
+            MB_DB_FILE: /metabase-data/metabase.db
+        depends_on:
+            - db
+        volumes:
+            - dataviz_data:/metabase-data
+        ports:
+            - 3000:3000
+        networks:
+            - my_network
 
-  rabbitmq:
-    image: rabbitmq:management
-    container_name: rabbitmq
-    depends_on:
-      - prometheus
-    networks:
-      - my_network
-    environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+    rabbitmq:
+        image: rabbitmq:management
+        container_name: rabbitmq
+        depends_on:
+            - prometheus
+        networks:
+            - my_network
+        environment:
+            - RABBITMQ_DEFAULT_USER=guest
+            - RABBITMQ_DEFAULT_PASS=guest
+        ports:
+            - 5672:5672
+            - 15672:15672
 
-  redpanda-0:
-    depends_on:
-      - prometheus
-    command:
-      - redpanda
-      - start
-      - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+    redpanda-0:
+        depends_on:
+            - prometheus
+        command:
+            - redpanda
+            - start
+            - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
       # Address the broker advertises to clients that connect to the Kafka API.
       # Use the internal addresses to connect to the Redpanda brokers'
       # from inside the same Docker network.
       # Use the external addresses to connect to the Redpanda brokers'
       # from outside the Docker network.
-      - --advertise-kafka-addr internal://redpanda-0:9092,external://localhost:19092
-      - --pandaproxy-addr internal://0.0.0.0:8082,external://0.0.0.0:18082
+            - --advertise-kafka-addr internal://redpanda-0:9092,external://localhost:19092
+            - --pandaproxy-addr internal://0.0.0.0:8082,external://0.0.0.0:18082
       # Address the broker advertises to clients that connect to the HTTP Proxy.
-      - --advertise-pandaproxy-addr internal://redpanda-0:8082,external://localhost:18082
-      - --schema-registry-addr internal://0.0.0.0:8081,external://0.0.0.0:18081
+            - --advertise-pandaproxy-addr internal://redpanda-0:8082,external://localhost:18082
+            - --schema-registry-addr internal://0.0.0.0:8081,external://0.0.0.0:18081
       # Redpanda brokers use the RPC API to communicate with eachother internally.
-      - --rpc-addr redpanda-0:33145
-      - --advertise-rpc-addr redpanda-0:33145
+            - --rpc-addr redpanda-0:33145
+            - --advertise-rpc-addr redpanda-0:33145
       # Tells Seastar (the framework Redpanda uses under the hood) to use 1 core on the system.
-      - --smp 1
+            - --smp 1
       # The amount of memory to make available to Redpanda.
-      - --memory 1G
+            - --memory 1G
       # Mode dev-container uses well-known configuration properties for development in containers.
-      - --mode dev-container
+            - --mode dev-container
       # enable logs for debugging.
-      - --default-log-level=debug
-    image: docker.redpanda.com/redpandadata/redpanda:v23.1.3
-    container_name: redpanda-0
-    volumes:
-      - redpanda-0:/var/lib/redpanda/data
-    networks:
-      - my_network
+            - --default-log-level=debug
+        image: docker.redpanda.com/redpandadata/redpanda:v23.1.3
+        container_name: redpanda-0
+        volumes:
+            - redpanda-0:/var/lib/redpanda/data
+        networks:
+            - my_network
         # ipv4_address: 172.28.0.10
         #aliases:
         #  - my_alias_rpk
-    ports:
-      - "18081:18081"
-      - "18082:18082"
-      - "19092:19092"
-      - "19644:9644"
-  console:
-    container_name: redpanda-console
-    image: docker.redpanda.com/vectorized/console:v2.2.3
-    networks:
-      - my_network
+        ports:
+            - 18081:18081
+            - 18082:18082
+            - 19092:19092
+            - 19644:9644
+    console:
+        container_name: redpanda-console
+        image: docker.redpanda.com/vectorized/console:v2.2.3
+        networks:
+            - my_network
         # ipv4_address: 172.28.0.11
         # aliases:
         #   - my_alias_rpk_console
-    entrypoint: /bin/sh
-    command: -c 'echo "$$CONSOLE_CONFIG_FILE" > /tmp/config.yml; /app/console'
-    environment:
-      CONFIG_FILEPATH: /tmp/config.yml
-      CONSOLE_CONFIG_FILE: |
-        kafka:
-          brokers: ["redpanda-0:9092"]
-          schemaRegistry:
-            enabled: true
-            urls: ["http://redpanda-0:8081"]
-        redpanda:
-          adminApi:
-            enabled: true
-            urls: ["http://redpanda-0:9644"]
-    ports:
-      - "8080:8080"
-    depends_on:
-      - redpanda-0
+        entrypoint: /bin/sh
+        command: -c 'echo "$$CONSOLE_CONFIG_FILE" > /tmp/config.yml; /app/console'
+        environment:
+            CONFIG_FILEPATH: /tmp/config.yml
+            CONSOLE_CONFIG_FILE: |
+                kafka:
+                  brokers: ["redpanda-0:9092"]
+                  schemaRegistry:
+                    enabled: true
+                    urls: ["http://redpanda-0:8081"]
+                redpanda:
+                  adminApi:
+                    enabled: true
+                    urls: ["http://redpanda-0:9644"]
+        ports:
+            - 8080:8080
+        depends_on:
+            - redpanda-0
 
-  api-consumer:
-    image: app
-    depends_on:
-      - db
-      - api-producer
-      - prometheus
-    networks:
-      - my_network
-        # ipv4_address: 172.28.0.5
-        # aliases:
-        #   - my_alias_app_1
-    environment:
-      ROLE: "API_CONSUMER"
-    entrypoint:
-      - 'bash'
-      - '-c'
-      - |
-        python3 run.py
+#  api-consumer:
+#    image: app
+#    depends_on:
+#      - db
+#      - api-producer
+#      - prometheus
+#    networks:
+#      - my_network
+#        # ipv4_address: 172.28.0.5
+#        # aliases:
+#        #   - my_alias_app_1
+#    environment:
+#      ROLE: "API_CONSUMER"
+#    entrypoint:
+#      - 'bash'
+#      - '-c'
+#      - |
+#        python3 run.py
+#
+#  api-producer:
+#    image: app
+#    depends_on:
+#      - db
+#      - prometheus
+#    ports:
+#      - "8000:8000"
+#    networks:
+#      - my_network
+#        #ipv4_address: 172.28.0.2
+#        #aliases:
+#        #  - my_alias_c
+#    entrypoint:
+#      - 'bash'
+#      - '-c'
+#      - |
+#        uvicorn src.rest.api:app --host 0.0.0.0 --reload
+#
+#  redpanda-consumer:
+#    image: app
+#    depends_on:
+#      - redpanda-0
+#      - redpanda-producer
+#      - db
+#      - prometheus
+#    environment:
+#      ROLE: "RED_PANDA_CONSUMER"
+#    networks:
+#      - my_network
+#        # ipv4_address: 172.28.0.6
+#        # aliases:
+#        #   - my_alias_d
+#    entrypoint:
+#      - 'bash'
+#      - '-c'
+#      - |
+#        python3 run.py
+#
+#  redpanda-producer:
+#    image: app
+#    depends_on:
+#      - redpanda-0
+#      - db
+#      - prometheus
+#    environment:
+#      ROLE: "RED_PANDA_PRODUCER"
+#    networks:
+#      - my_network
+#        #ipv4_address: 172.28.0.7
+#        #aliases:
+#        #  - my_alias_e
+#    entrypoint:
+#      - 'bash'
+#      - '-c'
+#      - |
+#        python3 run.py
 
-  api-producer:
-    image: app
-    depends_on:
-      - db
-      - prometheus
-    ports:
-      - "8000:8000"
-    networks:
-      - my_network
-        #ipv4_address: 172.28.0.2
-        #aliases:
-        #  - my_alias_c
-    entrypoint:
-      - 'bash'
-      - '-c'
-      - |
-        uvicorn src.rest.api:app --host 0.0.0.0 --reload
+#  rmq-producer:
+#    image: app
+#    depends_on:
+#      - rabbitmq
+#      - db
+#      - prometheus
+#    environment:
+#      ROLE: "RMQ_PRODUCER"
+#    networks:
+#      - my_network
+#        #ipv4_address: 172.28.0.7
+#        #aliases:
+#        #  - my_alias_e
+#    entrypoint:
+#      - 'bash'
+#      - '-c'
+#      - |
+#        python3 run.py
 
-  redpanda-consumer:
-    image: app
-    depends_on:
-      - redpanda-0
-      - redpanda-producer
-      - db
-      - prometheus
-    environment:
-      ROLE: "RED_PANDA_CONSUMER"
-    networks:
-      - my_network
-        # ipv4_address: 172.28.0.6
-        # aliases:
-        #   - my_alias_d
-    entrypoint:
-      - 'bash'
-      - '-c'
-      - |
-        python3 run.py
-
-  redpanda-producer:
-    image: app
-    depends_on:
-      - redpanda-0
-      - db
-      - prometheus
-    environment:
-      ROLE: "RED_PANDA_PRODUCER"
-    networks:
-      - my_network
-        #ipv4_address: 172.28.0.7
-        #aliases:
-        #  - my_alias_e
-    entrypoint:
-      - 'bash'
-      - '-c'
-      - |
-        python3 run.py
-
-  rmq-producer:
-    image: app
-    depends_on:
-      - rabbitmq
-      - db
-      - prometheus
-    environment:
-      ROLE: "RMQ_PRODUCER"
-    networks:
-      - my_network
-        #ipv4_address: 172.28.0.7
-        #aliases:
-        #  - my_alias_e
-    entrypoint:
-      - 'bash'
-      - '-c'
-      - |
-        python3 run.py
-
-  rmq-consumer:
-    image: app
-    depends_on:
-      - rabbitmq
-      - rmq-producer
-      - db
-      - prometheus
-    environment:
-      ROLE: "RMQ_CONSUMER"
-    ports:
-      - "5001:5000" # TODO Update ports
-    networks:
-      - my_network
-        #ipv4_address: 172.28.0.7
-        #aliases:
-        #  - my_alias_e
-    entrypoint:
-      - 'bash'
-      - '-c'
-      - |
-        python3 run.py
-
+#  rmq-consumer:
+#    image: app
+#    depends_on:
+#      - rabbitmq
+##      - rmq-producer
+#      - db
+#      - prometheus
+#    environment:
+#      ROLE: "RMQ_CONSUMER"
+#    ports:
+#      - "5001:5000" # TODO Update ports
+#    networks:
+#      - my_network
+#        #ipv4_address: 172.28.0.7
+#        #aliases:
+#        #  - my_alias_e
+#    entrypoint:
+#      - 'bash'
+#      - '-c'
+#      - |
+#        python3 run.py
+#
 
 
 volumes:
-    redpanda-0: null
+    redpanda-0:
     db_data:
     dataviz_data:
 networks:
-  my_network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.28.0.0/16
+    my_network:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 172.28.0.0/16

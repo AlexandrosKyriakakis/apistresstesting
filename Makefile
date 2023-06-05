@@ -40,10 +40,24 @@ pre-commit: venv
 	$(SOURCE_VENV) && pre-commit clean && pre-commit install && pre-commit run
 
 docker-build:
+	docker rmi -f app || true
 	docker build -t app .
 
 up: docker-build
 	docker compose up -d
 
-down:
+linux:
+	docker exec -it linux-machine-for-testing zsh
+
+psql:
+	docker exec -it linux-machine-for-testing psql -h db -U metabase -d metabase
+
+serialize_rmq:
+	PYTHONPATH="${PYTHONPATH}:/app" python3 ./architectures/serialize_rmq.py
+
+kill-workers:
+	docker ps --filter name=-worker -aq | xargs -r docker stop | xargs -r docker rm
+
+down: kill-workers
 	docker compose down
+	docker volume prune --force

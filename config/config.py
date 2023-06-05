@@ -23,6 +23,9 @@ class Env:
         # RMQ
         self.RMQ_HOST = 'rabbitmq'
         self.RMQ_QUEUE_NAME = 'test_queue'
+        self.RMQ_QUEUE_NAME_DAILY = 'daily'
+        self.RMQ_QUEUE_NAME_WEEKLY = 'weekly'
+        self.RMQ_QUEUE_NAME_MONTHLY = 'monthly'
 
         # POSTGRES
         self.DB_HOST = 'db'
@@ -30,6 +33,16 @@ class Env:
         self.DB_PORT = '5432'
         self.DB_USER = 'metabase'
         self.DB_PASSWORD = 'db_password'
+
+        # WORKERS
+        self.DATA_HOST = 'http://10.0.2.13/api/v3/data/'
+        self.DATA_REQUEST = 'entsoeactualtotalload/'
+        self.DATA_API_KEY = 'ASLDKJASDJK2534S'
+        self.DATA_START_DATE = '2014-08-24'
+        self.DATA_TEST_DATE = '2019-08-24'
+
+        self.ARCHITECTURE = ''
+        self.COUNTRY = ''
 
         self.__get_env_vars()
         return

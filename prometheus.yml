@@ -1,9 +1,34 @@
+---
 global:
-  scrape_interval:     1s
-  evaluation_interval: 1s
+    scrape_interval: 1s
+    evaluation_interval: 1s
 
 scrape_configs:
-  - job_name: 'rmq-consumer'
-    scrape_interval: 1s
-    static_configs:
-      - targets: ['rmq-consumer:5000']
+    - job_name: rmq-consumer
+      scrape_interval: 1s
+      static_configs:
+          - targets: [rmq-consumer:5000]
+
+    - job_name: data-worker
+      scrape_interval: 1s
+      static_configs:
+          - targets: [data-worker-belgium:5000, data-worker-greece:5000, data-worker-lithuania:5000, data-worker-portugal:5000, data-worker-bulgaria:5000,
+                data-worker-spain:5000, data-worker-luxembourg:5000, data-worker-romania:5000, data-worker-czechia:5000, data-worker-france:5000, data-worker-hungary:5000,
+                data-worker-slovenia:5000, data-worker-denmark:5000, data-worker-croatia:5000, data-worker-malta:5000, data-worker-slovakia:5000, data-worker-germany:5000,
+                data-worker-italy:5000, data-worker-netherlands:5000, data-worker-finland:5000, data-worker-estonia:5000, data-worker-cyprus:5000, data-worker-austria:5000,
+                data-worker-sweden:5000, data-worker-ireland:5000, data-worker-latvia:5000, data-worker-poland:5000]
+
+    - job_name: daily-worker
+      scrape_interval: 1s
+      static_configs:
+          - targets: [daily-worker:5000]
+
+    - job_name: weekly-worker
+      scrape_interval: 1s
+      static_configs:
+          - targets: [weekly-worker:5000]
+
+    - job_name: monthly-worker
+      scrape_interval: 1s
+      static_configs:
+          - targets: [monthly-worker:5000]

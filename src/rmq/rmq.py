@@ -1,14 +1,14 @@
 import time
+
 import pika
 import requests
 
 from config import enum
 from config.config import Env
 from config.logger import logger
-
+from src.prometheus.prometheus import REQUEST_TIME
 from src.rmq.consume import consume
 from src.rmq.produce import produce
-from src.prometheus.prometheus import REQUEST_TIME
 
 
 # This is a test metric
