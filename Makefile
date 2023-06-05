@@ -43,7 +43,7 @@ docker-build:
 	docker rmi -f app || true
 	docker build -t app .
 
-up: docker-build
+up:
 	docker compose up -d
 
 linux:
@@ -52,12 +52,23 @@ linux:
 psql:
 	docker exec -it linux-machine-for-testing psql -h db -U metabase -d metabase
 
-serialize_rmq:
+
+serialize_rmq: docker-build
 	PYTHONPATH="${PYTHONPATH}:/app" python3 ./architectures/serialize_rmq.py
+
+clean_before_rerun_soa:
+	docker exec -it linux-machine-for-testing psql -h db -U metabase -d metabase -c "truncate total_load;"
+	docker exec -it linux-machine-for-testing psql -h db -U metabase -d metabase -c "truncate daily_total_load;"
+	docker exec -it linux-machine-for-testing psql -h db -U metabase -d metabase -c "truncate weekly_total_load;"
+	docker exec -it linux-machine-for-testing psql -h db -U metabase -d metabase -c "truncate monthly_total_load;"
+	docker exec -it linux-machine-for-testing root/rpk/rpk topic delete test_topic --brokers 'redpanda-0:9092'
+
+soa_redpanda: docker-build clean_before_rerun_soa
+	PYTHONPATH="${PYTHONPATH}:/app" python3 ./architectures/soa_redpanda.py
 
 kill-workers:
 	docker ps --filter name=-worker -aq | xargs -r docker stop | xargs -r docker rm
 
 down: kill-workers
 	docker compose down
-	docker volume prune --force
+	docker volume prune --force --all

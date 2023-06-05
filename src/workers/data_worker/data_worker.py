@@ -6,6 +6,7 @@ import time
 import orjson as orjson
 import pika as pika
 import requests
+from kafka import KafkaProducer
 
 from config.config import Env
 from config.enum import ARCHITECTURE_REDPANDA
@@ -18,7 +19,7 @@ from src.prometheus.prometheus import DATA_REQUEST_TIME
 from src.prometheus.prometheus import DATA_SAVE_TIME
 from src.prometheus.prometheus import FINAL_DELAY
 from src.prometheus.prometheus import time_histogram
-from src.rmq.produce import produce
+from src.rmq.produce import produce as rmq_produce
 from src.workers.data_worker.countries import COUNTRIES
 
 cfg = Env()
@@ -71,11 +72,9 @@ def pull_all_load_data():
         next_date, num_of_days = get_next_date_num(start_date)
         if env.COUNTRY == '':
             for country in COUNTRIES.values():
-                data = get_total_load(country, start_date, num_of_days)
-                yield data.content
+                yield get_total_load(country, start_date, num_of_days).content
         else:
-            data = get_total_load(env.COUNTRY, start_date, num_of_days)
-            yield data.content
+            yield get_total_load(env.COUNTRY, start_date, num_of_days).content
 
         start_date = next_date
 
@@ -102,11 +101,19 @@ def rmq_flow():
     connection = pika.BlockingConnection(pika.ConnectionParameters(cfg.RMQ_HOST))
     channel = connection.channel()
 
-    channel.queue_declare(queue=cfg.RMQ_QUEUE_NAME_DAILY)
+    for data in pull_all_load_data():
+        rmq_produce(channel, cfg.RMQ_QUEUE_NAME_DAILY, data)
+        save_to_db(data)
+
+
+def red_panda_flow():
+    producer = KafkaProducer(bootstrap_servers=cfg.RED_PANDA_BROKER_0)
 
     for data in pull_all_load_data():
-        produce(channel, cfg.RMQ_QUEUE_NAME_DAILY, data)
+        producer.send(cfg.RED_PANDA_TOPIC, key=cfg.RED_PANDA_KEY, value=data)
         save_to_db(data)
+    producer.flush()
+    producer.close()
 
 
 def run():
@@ -116,7 +123,7 @@ def run():
     elif cfg.ARCHITECTURE == ARCHITECTURE_REST:
         raise NotImplemented
     elif cfg.ARCHITECTURE == ARCHITECTURE_REDPANDA:
-        raise NotImplemented
+        red_panda_flow()
     else:
         raise ModuleNotFoundError
 

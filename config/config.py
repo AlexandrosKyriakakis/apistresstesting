@@ -1,5 +1,6 @@
 import os
 
+from config.enum import ARCHITECTURE_NULL
 from config.logger import logger
 
 
@@ -41,7 +42,7 @@ class Env:
         self.DATA_START_DATE = '2014-08-24'
         self.DATA_TEST_DATE = '2019-08-24'
 
-        self.ARCHITECTURE = ''
+        self.ARCHITECTURE = ARCHITECTURE_NULL
         self.COUNTRY = ''
 
         self.__get_env_vars()

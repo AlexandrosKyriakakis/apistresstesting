@@ -12,14 +12,13 @@ from src.rest.rest import rest
 from src.rmq.rmq import rmq
 from src.workers.daily_worker import daily_worker
 from src.workers.data_worker import data_worker
+from src.workers.initiator_worker import initiator_worker
 from src.workers.monthly_worker import monthly_worker
 from src.workers.weekly_worker import weekly_worker
 
 if __name__ == '__main__':
     cfg = Env()
     time.sleep(10)
-    init_db()
-
     # Start up the server to expose the metrics.
     start_http_server(5000)
 
@@ -31,6 +30,8 @@ if __name__ == '__main__':
         weekly_worker.run()
     elif cfg.ROLE == enum.ROLE_MONTHLY_WORKER:
         monthly_worker.run()
+    elif cfg.ROLE == enum.ROLE_INITIATOR:
+        initiator_worker.run()
     else:
         logger.error('wrong env variable ROLE: %s', os.getenv('ROLE'))
 

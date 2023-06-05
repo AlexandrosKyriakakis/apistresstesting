@@ -1,4 +1,5 @@
 import datetime
+import time
 
 import orjson
 import pika as pika
@@ -12,9 +13,11 @@ from src.postgres.models.my_model import DailyTotalLoad
 from src.prometheus.prometheus import DAILY_FORWARD_TIME
 from src.prometheus.prometheus import DAILY_PARSE_TIME
 from src.prometheus.prometheus import DAILY_SAVE_TIME
+from src.prometheus.prometheus import FINAL_DELAY
 from src.prometheus.prometheus import time_histogram
-from src.rmq.consume import consume
-from src.rmq.produce import produce
+from src.redpanda.consume import consume as rpk_consume
+from src.rmq.consume import consume as rmq_consume
+from src.rmq.produce import produce as rmq_produce
 
 cfg = Env()
 
@@ -23,7 +26,7 @@ cfg = Env()
 def forward_data(ch, method, properties, body: bytes):
     # start = time.time()
     model = parse_data(body)
-    produce(ch, cfg.RMQ_QUEUE_NAME_WEEKLY, orjson.dumps(model))
+    rmq_produce(ch, cfg.RMQ_QUEUE_NAME_WEEKLY, orjson.dumps(model))
     save_to_db(model)
     # end -
     # pprint(model)  # TODO REMOVE
@@ -72,7 +75,21 @@ def rmq_flow():
     channel.queue_declare(queue=cfg.RMQ_QUEUE_NAME_DAILY)
     channel.queue_declare(queue=cfg.RMQ_QUEUE_NAME_WEEKLY)
 
-    consume(channel, cfg.RMQ_QUEUE_NAME_DAILY, forward_data)
+    rmq_consume(channel, cfg.RMQ_QUEUE_NAME_DAILY, forward_data)
+
+
+def red_panda_flow():
+    for data in rpk_consume(
+        cfg.RED_PANDA_BROKER_0, [cfg.RED_PANDA_TOPIC], cfg.RED_PANDA_CONSUMER_GROUP
+    ):
+        model = parse_data(data.value)
+        if model:
+            save_to_db(model)
+            # End point for metrics
+            current_time_micros = time.time_ns()
+            FINAL_DELAY.labels(
+                country=model[0]['city'], date=model[0]['date'].strftime('%Y-%m-%d')
+            ).set(current_time_micros)
 
 
 def run():
@@ -81,7 +98,7 @@ def run():
     elif cfg.ARCHITECTURE == ARCHITECTURE_REST:
         raise NotImplemented
     elif cfg.ARCHITECTURE == ARCHITECTURE_REDPANDA:
-        raise NotImplemented
+        red_panda_flow()
     else:
         raise ModuleNotFoundError
 

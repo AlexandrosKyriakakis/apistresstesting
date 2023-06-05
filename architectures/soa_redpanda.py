@@ -5,7 +5,7 @@ import docker
 from architectures.docker_utils import get_image
 from architectures.docker_utils import get_network
 from config import enum
-from config.enum import ARCHITECTURE_RMQ
+from config.enum import ARCHITECTURE_REDPANDA
 from src.workers.data_worker.countries import COUNTRIES
 
 
@@ -22,7 +22,7 @@ def create_workers():
         ports={'5000/tcp': 5005},
         environment={
             'ROLE': enum.ROLE_INITIATOR,
-            'ARCHITECTURE': ARCHITECTURE_RMQ,
+            'ARCHITECTURE': ARCHITECTURE_REDPANDA,
         },
         network=network_name,
         command='bash -c "python3 run.py"',
@@ -32,15 +32,17 @@ def create_workers():
 
     print(container.wait())
 
-    base_port = 5010
-
     # Create a Daily Worker
     container = client.containers.run(
         image=image,
         name='daily-worker',
         detach=True,
         ports={'5000/tcp': 5002},
-        environment={'ROLE': enum.ROLE_DAILY_WORKER, 'ARCHITECTURE': ARCHITECTURE_RMQ},
+        environment={
+            'ROLE': enum.ROLE_DAILY_WORKER,
+            'ARCHITECTURE': ARCHITECTURE_REDPANDA,
+            'RED_PANDA_CONSUMER_GROUP': enum.ROLE_DAILY_WORKER,
+        },
         network=network_name,
         command='bash -c "python3 run.py"',
         restart_policy={'Name': 'always'},
@@ -53,7 +55,11 @@ def create_workers():
         name='weekly-worker',
         detach=True,
         ports={'5000/tcp': 5003},
-        environment={'ROLE': enum.ROLE_WEEKLY_WORKER, 'ARCHITECTURE': ARCHITECTURE_RMQ},
+        environment={
+            'ROLE': enum.ROLE_WEEKLY_WORKER,
+            'ARCHITECTURE': ARCHITECTURE_REDPANDA,
+            'RED_PANDA_CONSUMER_GROUP': enum.ROLE_WEEKLY_WORKER,
+        },
         network=network_name,
         command='bash -c "python3 run.py"',
         restart_policy={'Name': 'always'},
@@ -68,7 +74,8 @@ def create_workers():
         ports={'5000/tcp': 5004},
         environment={
             'ROLE': enum.ROLE_MONTHLY_WORKER,
-            'ARCHITECTURE': ARCHITECTURE_RMQ,
+            'ARCHITECTURE': ARCHITECTURE_REDPANDA,
+            'RED_PANDA_CONSUMER_GROUP': enum.ROLE_MONTHLY_WORKER,
         },
         network=network_name,
         command='bash -c "python3 run.py"',
@@ -78,6 +85,8 @@ def create_workers():
 
     # Wait for consumer to instantiate
     time.sleep(20)
+
+    base_port = 5010
 
     # Create as many data workers as the Countries
     for port_index, (key, country) in enumerate(COUNTRIES.items()):
@@ -91,7 +100,7 @@ def create_workers():
             environment={
                 'ROLE': enum.ROLE_DATA_WORKER,
                 'COUNTRY': country,
-                'ARCHITECTURE': ARCHITECTURE_RMQ,
+                'ARCHITECTURE': ARCHITECTURE_REDPANDA,
             },
             network=network_name,
             command='bash -c "python3 run.py"',
