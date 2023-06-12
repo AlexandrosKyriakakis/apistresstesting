@@ -14,7 +14,6 @@ PIP := python -m pip
 
 # Removes the existing virtual environment, if exists
 clean:
-	-deactivate
 	rm -rf venv
 
 # Create a Python virtual environment
