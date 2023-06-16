@@ -3,9 +3,10 @@ import time
 import pika
 
 from config.config import Env
+from config.enum import ARCHITECTURE_ORCHESTRATOR
 from config.enum import ARCHITECTURE_REDPANDA
-from config.enum import ARCHITECTURE_REST_ORCHESTRATOR
 from config.enum import ARCHITECTURE_RMQ
+from config.enum import ARCHITECTURE_SERIALISED_ORCHESTRATOR
 from src.postgres.init_db import init_db
 from src.redpanda.admin import create_topics
 
@@ -37,7 +38,9 @@ def run():
     elif cfg.ARCHITECTURE == ARCHITECTURE_RMQ:
         init_rmq(cfg)
         return
-    elif cfg.ARCHITECTURE == ARCHITECTURE_REST_ORCHESTRATOR:
+    elif cfg.ARCHITECTURE == ARCHITECTURE_ORCHESTRATOR:
+        pass
+    elif cfg.ARCHITECTURE == ARCHITECTURE_SERIALISED_ORCHESTRATOR:
         pass
     else:
         raise ModuleNotFoundError

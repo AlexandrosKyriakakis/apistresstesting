@@ -11,9 +11,10 @@ import websockets
 from kafka import KafkaProducer
 
 from config.config import Env
+from config.enum import ARCHITECTURE_ORCHESTRATOR
 from config.enum import ARCHITECTURE_REDPANDA
-from config.enum import ARCHITECTURE_REST_ORCHESTRATOR
 from config.enum import ARCHITECTURE_RMQ
+from config.enum import ARCHITECTURE_SERIALISED_ORCHESTRATOR
 from config.logger import logger
 from src.postgres import Session
 from src.postgres.models.my_model import TotalLoad
@@ -137,11 +138,26 @@ def rest_orchestrator_flow():
         asyncio.get_event_loop().run_until_complete(asyncio.gather(client(), save()))
 
 
+def rest_serialised_orchestrator_flow():
+    for data in pull_all_load_data():
+
+        async def client():
+            async with websockets.connect(cfg.API_DAILY_HOST) as daily_websocket:
+                await daily_websocket.send(data)
+
+        async def save():
+            save_to_db(data)
+
+        asyncio.get_event_loop().run_until_complete(asyncio.gather(client(), save()))
+
+
 def run():
     if cfg.ARCHITECTURE == ARCHITECTURE_RMQ:
         rmq_flow()
-    elif cfg.ARCHITECTURE == ARCHITECTURE_REST_ORCHESTRATOR:
+    elif cfg.ARCHITECTURE == ARCHITECTURE_ORCHESTRATOR:
         rest_orchestrator_flow()
+    elif cfg.ARCHITECTURE == ARCHITECTURE_SERIALISED_ORCHESTRATOR:
+        rest_serialised_orchestrator_flow()
     elif cfg.ARCHITECTURE == ARCHITECTURE_REDPANDA:
         red_panda_flow()
     else:

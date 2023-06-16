@@ -8,9 +8,10 @@ import websockets
 from epiweeks import Week
 
 from config.config import Env
+from config.enum import ARCHITECTURE_ORCHESTRATOR
 from config.enum import ARCHITECTURE_REDPANDA
-from config.enum import ARCHITECTURE_REST_ORCHESTRATOR
 from config.enum import ARCHITECTURE_RMQ
+from config.enum import ARCHITECTURE_SERIALISED_ORCHESTRATOR
 from src.postgres import Session
 from src.postgres.models.my_model import WeeklyTotalLoad
 from src.prometheus.prometheus import FINAL_DELAY
@@ -156,11 +157,26 @@ def rest_orchestrator_flow():
     asyncio.get_event_loop().run_forever()
 
 
+def rest_serialised_orchestrator_flow():
+    async def server(websocket, path):
+        data: bytes = await websocket.recv()
+        model = parse_data(data)
+        async with websockets.connect(cfg.API_MONTHLY_HOST) as monthly_websocket:
+            await monthly_websocket.send(orjson.dumps(model))
+        save_to_db(model)
+
+    start_server = websockets.serve(server, '0.0.0.0', cfg.WSS_PORT)
+    asyncio.get_event_loop().run_until_complete(start_server)
+    asyncio.get_event_loop().run_forever()
+
+
 def run():
     if cfg.ARCHITECTURE == ARCHITECTURE_RMQ:
         rmq_flow()
-    elif cfg.ARCHITECTURE == ARCHITECTURE_REST_ORCHESTRATOR:
+    elif cfg.ARCHITECTURE == ARCHITECTURE_ORCHESTRATOR:
         rest_orchestrator_flow()
+    elif cfg.ARCHITECTURE == ARCHITECTURE_SERIALISED_ORCHESTRATOR:
+        rest_serialised_orchestrator_flow()
     elif cfg.ARCHITECTURE == ARCHITECTURE_REDPANDA:
         red_panda_flow()
     else:
