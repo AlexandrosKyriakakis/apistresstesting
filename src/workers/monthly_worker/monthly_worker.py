@@ -1,20 +1,20 @@
+import asyncio
 import datetime
 import time
 
 import orjson
 import pika as pika
+import websockets
 
 from config.config import Env
 from config.enum import ARCHITECTURE_REDPANDA
-from config.enum import ARCHITECTURE_REST
+from config.enum import ARCHITECTURE_REST_ORCHESTRATOR
 from config.enum import ARCHITECTURE_RMQ
 from src.postgres import Session
 from src.postgres.models.my_model import MonthlyTotalLoad
 from src.prometheus.prometheus import FINAL_DELAY
 from src.redpanda.consume import consume as rpk_consume
 from src.rmq.consume import consume as rmq_consume
-from src.workers.daily_worker.daily_worker import parse_data as daily_parse_data
-from src.workers.weekly_worker.weekly_worker import parse_data as weekly_parse_data
 
 cfg = Env()
 
@@ -115,18 +115,29 @@ def red_panda_flow():
             ).set(current_time_micros)
 
 
+def rest_orchestrator_flow():
+    async def server(websocket, path):
+        data: bytes = await websocket.recv()
+        model = parse_data(data)
+        save_to_db(model)
+
+        # End point for metrics
+        current_time_micros = time.time_ns()
+        FINAL_DELAY.labels(
+            country=model[0]['city'], date=model[0]['date'].strftime('%Y-%m-%d')
+        ).set(current_time_micros)
+
+    start_server = websockets.serve(server, '0.0.0.0', cfg.WSS_PORT)
+    asyncio.get_event_loop().run_until_complete(start_server)
+    asyncio.get_event_loop().run_forever()
+
+
 def run():
     if cfg.ARCHITECTURE == ARCHITECTURE_RMQ:
         rmq_flow()
-    elif cfg.ARCHITECTURE == ARCHITECTURE_REST:
-        raise NotImplemented
+    elif cfg.ARCHITECTURE == ARCHITECTURE_REST_ORCHESTRATOR:
+        rest_orchestrator_flow()
     elif cfg.ARCHITECTURE == ARCHITECTURE_REDPANDA:
         red_panda_flow()
     else:
         raise ModuleNotFoundError
-
-
-# # TODO Make it async
-# if __name__ == '__main__':
-#     cfg = Env()
-#     run()

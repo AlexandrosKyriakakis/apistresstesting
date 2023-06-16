@@ -1,3 +1,4 @@
+import asyncio
 import calendar
 import datetime
 import json
@@ -6,11 +7,12 @@ import time
 import orjson as orjson
 import pika as pika
 import requests
+import websockets
 from kafka import KafkaProducer
 
 from config.config import Env
 from config.enum import ARCHITECTURE_REDPANDA
-from config.enum import ARCHITECTURE_REST
+from config.enum import ARCHITECTURE_REST_ORCHESTRATOR
 from config.enum import ARCHITECTURE_RMQ
 from config.logger import logger
 from src.postgres import Session
@@ -116,12 +118,30 @@ def red_panda_flow():
     producer.close()
 
 
+def rest_orchestrator_flow():
+    for data in pull_all_load_data():
+
+        async def client():
+            async with websockets.connect(cfg.API_DAILY_HOST) as daily_websocket:
+                await daily_websocket.send(data)
+                daily_data: bytes = await daily_websocket.recv()
+            async with websockets.connect(cfg.API_WEEKLY_HOST) as weekly_websocket:
+                await weekly_websocket.send(daily_data)
+                weekly_data: bytes = await weekly_websocket.recv()
+            async with websockets.connect(cfg.API_MONTHLY_HOST) as monthly_websocket:
+                await monthly_websocket.send(weekly_data)
+
+        async def save():
+            save_to_db(data)
+
+        asyncio.get_event_loop().run_until_complete(asyncio.gather(client(), save()))
+
+
 def run():
-    cfg = Env()
     if cfg.ARCHITECTURE == ARCHITECTURE_RMQ:
         rmq_flow()
-    elif cfg.ARCHITECTURE == ARCHITECTURE_REST:
-        raise NotImplemented
+    elif cfg.ARCHITECTURE == ARCHITECTURE_REST_ORCHESTRATOR:
+        rest_orchestrator_flow()
     elif cfg.ARCHITECTURE == ARCHITECTURE_REDPANDA:
         red_panda_flow()
     else:
@@ -130,8 +150,3 @@ def run():
     logger.info('%s Just Ended', cfg.COUNTRY)
     while True:
         time.sleep(1)
-
-
-# # TODO Make it async
-# if __name__ == '__main__':
-#     run()

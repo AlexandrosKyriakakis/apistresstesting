@@ -15,6 +15,12 @@ class Env:
         # API
         self.API_SERVER_HOST = 'http://api-producer:8000'
 
+        # WSS
+        self.WSS_PORT = 9765
+        self.API_DAILY_HOST = 'ws://daily-worker:9765'
+        self.API_WEEKLY_HOST = 'ws://weekly-worker:9765'
+        self.API_MONTHLY_HOST = 'ws://monthly-worker:9765'
+
         # RED PANDA
         self.RED_PANDA_BROKER_0 = 'redpanda-0:9092'
         self.RED_PANDA_TOPIC = 'test_topic'

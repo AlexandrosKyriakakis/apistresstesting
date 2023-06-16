@@ -51,9 +51,11 @@ linux:
 psql:
 	docker exec -it linux-machine-for-testing psql -h db -U metabase -d metabase
 
-
 serialize_rmq: docker-build
 	PYTHONPATH="${PYTHONPATH}:/app" python3 ./architectures/serialize_rmq.py
+
+orchestrator: docker-build
+	PYTHONPATH="${PYTHONPATH}:/app" python3 ./architectures/orchestrator.py
 
 clean_before_rerun_soa:
 	docker exec -it linux-machine-for-testing psql -h db -U metabase -d metabase -c "truncate total_load;"

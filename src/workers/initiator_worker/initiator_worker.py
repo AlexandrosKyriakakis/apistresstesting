@@ -4,7 +4,7 @@ import pika
 
 from config.config import Env
 from config.enum import ARCHITECTURE_REDPANDA
-from config.enum import ARCHITECTURE_REST
+from config.enum import ARCHITECTURE_REST_ORCHESTRATOR
 from config.enum import ARCHITECTURE_RMQ
 from src.postgres.init_db import init_db
 from src.redpanda.admin import create_topics
@@ -37,7 +37,7 @@ def run():
     elif cfg.ARCHITECTURE == ARCHITECTURE_RMQ:
         init_rmq(cfg)
         return
-    elif cfg.ARCHITECTURE == ARCHITECTURE_REST:
-        raise NotImplemented
+    elif cfg.ARCHITECTURE == ARCHITECTURE_REST_ORCHESTRATOR:
+        pass
     else:
         raise ModuleNotFoundError

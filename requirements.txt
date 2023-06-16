@@ -57,5 +57,6 @@ urllib3==1.26.14
 uvicorn==0.20.0
 virtualenv==20.19.0
 websocket-client==1.5.2
+websockets==11.0.3
 wrapt==1.14.1
 yarl==1.9.2
