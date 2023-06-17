@@ -3,6 +3,7 @@ import time
 import pika
 
 from config.config import Env
+from config.enum import ARCHITECTURE_ASYNC_ORCHESTRATOR
 from config.enum import ARCHITECTURE_ORCHESTRATOR
 from config.enum import ARCHITECTURE_REDPANDA
 from config.enum import ARCHITECTURE_RMQ
@@ -41,6 +42,8 @@ def run():
     elif cfg.ARCHITECTURE == ARCHITECTURE_ORCHESTRATOR:
         pass
     elif cfg.ARCHITECTURE == ARCHITECTURE_SERIALISED_ORCHESTRATOR:
+        pass
+    elif cfg.ARCHITECTURE == ARCHITECTURE_ASYNC_ORCHESTRATOR:
         pass
     else:
         raise ModuleNotFoundError

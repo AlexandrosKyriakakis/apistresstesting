@@ -60,12 +60,19 @@ orchestrator: docker-build
 serialised_orchestrator: docker-build
 	PYTHONPATH="${PYTHONPATH}:/app" python3 ./architectures/serialised_orchestrator.py
 
+async_orchestrator: docker-build
+	PYTHONPATH="${PYTHONPATH}:/app" python3 ./architectures/async_orchestrator.py
+
+
 clean_before_rerun:
 	docker exec -it linux-machine-for-testing psql -h db -U metabase -d metabase -c "truncate total_load;"
 	docker exec -it linux-machine-for-testing psql -h db -U metabase -d metabase -c "truncate daily_total_load;"
 	docker exec -it linux-machine-for-testing psql -h db -U metabase -d metabase -c "truncate weekly_total_load;"
 	docker exec -it linux-machine-for-testing psql -h db -U metabase -d metabase -c "truncate monthly_total_load;"
-	docker exec -it linux-machine-for-testing root/rpk/rpk topic delete test_topic --brokers 'redpanda-0:9092'
+	-docker exec -it linux-machine-for-testing root/rpk/rpk topic delete test_topic --brokers 'redpanda-0:9092'
+	-docker exec -it rabbitmq rabbitmqctl delete_queue daily
+	-docker exec -it rabbitmq rabbitmqctl delete_queue monthly
+	-docker exec -it rabbitmq rabbitmqctl delete_queue weekly
 
 soa_redpanda: docker-build
 	PYTHONPATH="${PYTHONPATH}:/app" python3 ./architectures/soa_redpanda.py

@@ -2,6 +2,7 @@ import asyncio
 import calendar
 import datetime
 import json
+import sys
 import time
 
 import orjson as orjson
@@ -11,6 +12,7 @@ import websockets
 from kafka import KafkaProducer
 
 from config.config import Env
+from config.enum import ARCHITECTURE_ASYNC_ORCHESTRATOR
 from config.enum import ARCHITECTURE_ORCHESTRATOR
 from config.enum import ARCHITECTURE_REDPANDA
 from config.enum import ARCHITECTURE_RMQ
@@ -20,6 +22,8 @@ from src.postgres import Session
 from src.postgres.models.my_model import TotalLoad
 from src.prometheus.prometheus import DATA_REQUEST_TIME
 from src.prometheus.prometheus import DATA_SAVE_TIME
+from src.prometheus.prometheus import DATA_TOTAL_BYTES_RECEIVED
+from src.prometheus.prometheus import DATA_TOTAL_REQUESTS_PROCESSED
 from src.prometheus.prometheus import FINAL_DELAY
 from src.prometheus.prometheus import time_histogram
 from src.rmq.produce import produce as rmq_produce
@@ -44,6 +48,10 @@ def get_total_load(
     }
 
     response = requests.request('GET', url, headers=headers, data=payload, json=orjson)
+
+    # Total data processed
+    DATA_TOTAL_BYTES_RECEIVED.inc(sys.getsizeof(response.content))
+    DATA_TOTAL_REQUESTS_PROCESSED.inc()
 
     # Starting point for metrics TODO this is not working properly
     current_time_micros = time.time_ns()
@@ -119,7 +127,7 @@ def red_panda_flow():
     producer.close()
 
 
-def rest_orchestrator_flow():
+def orchestrator_flow():
     for data in pull_all_load_data():
 
         async def client():
@@ -138,7 +146,7 @@ def rest_orchestrator_flow():
         asyncio.get_event_loop().run_until_complete(asyncio.gather(client(), save()))
 
 
-def rest_serialised_orchestrator_flow():
+def serialised_orchestrator_flow():
     for data in pull_all_load_data():
 
         async def client():
@@ -151,13 +159,38 @@ def rest_serialised_orchestrator_flow():
         asyncio.get_event_loop().run_until_complete(asyncio.gather(client(), save()))
 
 
+def async_orchestrator_flow():
+    for data in pull_all_load_data():
+
+        async def send_daily():
+            async with websockets.connect(cfg.API_DAILY_HOST) as daily_websocket:
+                await daily_websocket.send(data)
+
+        async def send_weekly():
+            async with websockets.connect(cfg.API_WEEKLY_HOST) as weekly_websocket:
+                await weekly_websocket.send(data)
+
+        async def send_monthly():
+            async with websockets.connect(cfg.API_MONTHLY_HOST) as monthly_websocket:
+                await monthly_websocket.send(data)
+
+        async def save():
+            save_to_db(data)
+
+        asyncio.get_event_loop().run_until_complete(
+            asyncio.gather(send_daily(), send_weekly(), send_monthly(), save())
+        )
+
+
 def run():
     if cfg.ARCHITECTURE == ARCHITECTURE_RMQ:
         rmq_flow()
     elif cfg.ARCHITECTURE == ARCHITECTURE_ORCHESTRATOR:
-        rest_orchestrator_flow()
+        orchestrator_flow()
     elif cfg.ARCHITECTURE == ARCHITECTURE_SERIALISED_ORCHESTRATOR:
-        rest_serialised_orchestrator_flow()
+        serialised_orchestrator_flow()
+    elif cfg.ARCHITECTURE == ARCHITECTURE_ASYNC_ORCHESTRATOR:
+        async_orchestrator_flow()
     elif cfg.ARCHITECTURE == ARCHITECTURE_REDPANDA:
         red_panda_flow()
     else:

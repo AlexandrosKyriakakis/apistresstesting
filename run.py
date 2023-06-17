@@ -6,10 +6,6 @@ from prometheus_client import start_http_server
 import config.enum as enum
 from config.config import Env
 from config.logger import logger
-from src.postgres.init_db import init_db
-from src.redpanda.pubsub import pubsub
-from src.rest.rest import rest
-from src.rmq.rmq import rmq
 from src.workers.daily_worker import daily_worker
 from src.workers.data_worker import data_worker
 from src.workers.initiator_worker import initiator_worker
@@ -19,6 +15,7 @@ from src.workers.weekly_worker import weekly_worker
 if __name__ == '__main__':
     cfg = Env()
     time.sleep(10)
+
     # Start up the server to expose the metrics.
     start_http_server(5000)
 
