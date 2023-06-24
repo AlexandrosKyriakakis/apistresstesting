@@ -10,8 +10,6 @@ DOCKER_IMAGE_VERSION := latest
 DOCKER_EXPOSE_PORT := 8081
 PIP := python -m pip
 
-DB_HOST ?= db
-
 .PHONY: clean venv lint docker_build docker_clean redis_up tests serve
 
 # Removes the existing virtual environment, if exists
@@ -51,7 +49,7 @@ linux:
 	docker exec -it linux-machine-for-testing zsh
 
 psql:
-	docker exec -it linux-machine-for-testing psql -h $(DB) -U metabase -d metabase
+	docker exec -it linux-machine-for-testing psql -h db -U metabase -d metabase
 
 serialised_rmq: docker-build
 	PYTHONPATH="${PYTHONPATH}:/app" python3 ./architectures/serialised_rmq.py
@@ -69,10 +67,10 @@ soa_redpanda: docker-build
 	PYTHONPATH="${PYTHONPATH}:/app" python3 ./architectures/soa_redpanda.py
 
 clean_db_before_rerun:
-	docker exec -it linux-machine-for-testing psql -h $(DB) -U metabase -d metabase -c "truncate total_load;"
-	docker exec -it linux-machine-for-testing psql -h $(DB) -U metabase -d metabase -c "truncate daily_total_load;"
-	docker exec -it linux-machine-for-testing psql -h $(DB) -U metabase -d metabase -c "truncate weekly_total_load;"
-	docker exec -it linux-machine-for-testing psql -h $(DB) -U metabase -d metabase -c "truncate monthly_total_load;"
+	docker exec -it linux-machine-for-testing psql -h db -U metabase -d metabase -c "truncate total_load;"
+	docker exec -it linux-machine-for-testing psql -h db -U metabase -d metabase -c "truncate daily_total_load;"
+	docker exec -it linux-machine-for-testing psql -h db -U metabase -d metabase -c "truncate weekly_total_load;"
+	docker exec -it linux-machine-for-testing psql -h db -U metabase -d metabase -c "truncate monthly_total_load;"
 
 clean_brokers_before_rerun:
 	-docker exec -it linux-machine-for-testing root/rpk/rpk topic delete test_topic --brokers 'redpanda-0:9092'

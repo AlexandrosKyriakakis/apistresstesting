@@ -21,14 +21,14 @@ scrape_configs:
     - job_name: daily-worker
       scrape_interval: 1s
       static_configs:
-          - targets: [daily-worker:5000]
+          - targets: [daily-worker-0:5000, daily-worker-1:5000, daily-worker-2:5000, daily-worker-3:5000, daily-worker-4:5000]
 
     - job_name: weekly-worker
       scrape_interval: 1s
       static_configs:
-          - targets: [weekly-worker:5000]
+          - targets: [weekly-worker-0:5000, weekly-worker-1:5000, weekly-worker-2:5000, weekly-worker-3:5000, weekly-worker-4:5000]
 
     - job_name: monthly-worker
       scrape_interval: 1s
       static_configs:
-          - targets: [monthly-worker:5000]
+          - targets: [monthly-worker-0:5000, monthly-worker-1:5000, monthly-worker-2:5000, monthly-worker-3:5000, monthly-worker-4:5000]

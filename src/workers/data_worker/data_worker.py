@@ -182,7 +182,26 @@ def async_orchestrator_flow():
         )
 
 
+def sleep_to_sync_workers():
+    if cfg.MINUTES_WAITING <= 0:
+        return
+    current_time = datetime.datetime.now()
+    target_time = datetime.datetime(
+        current_time.year,
+        current_time.month,
+        current_time.day,
+        current_time.hour,
+        current_time.minute,
+    ) + datetime.timedelta(minutes=cfg.MINUTES_WAITING)
+    # Calculate the number of seconds to wait
+    wait_seconds = (target_time - current_time).total_seconds()
+    logger.info('Waiting until, %s', target_time)
+    # Wait for the specified number of seconds
+    time.sleep(wait_seconds)
+
+
 def run():
+    sleep_to_sync_workers()
     if cfg.ARCHITECTURE == ARCHITECTURE_RMQ:
         rmq_flow()
     elif cfg.ARCHITECTURE == ARCHITECTURE_ORCHESTRATOR:

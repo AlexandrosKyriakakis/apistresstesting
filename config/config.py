@@ -11,15 +11,17 @@ class Env:
         self.LOG_LEVEL = 'DEBUG'
         self.ROLE = ''
         self.EXTERNAL_HOST = 'http://example.com'
+        self.PARALLEL_WORKERS = 3
+        self.MINUTES_WAITING = 2  # If 0 then start imminently
 
         # API
         self.API_SERVER_HOST = 'http://api-producer:8000'
 
         # WSS
         self.WSS_PORT = 9765
-        self.API_DAILY_HOST = 'ws://daily-worker:9765'
-        self.API_WEEKLY_HOST = 'ws://weekly-worker:9765'
-        self.API_MONTHLY_HOST = 'ws://monthly-worker:9765'
+        self.API_DAILY_HOST = 'ws://daily-worker-0:9765'
+        self.API_WEEKLY_HOST = 'ws://weekly-worker-0:9765'
+        self.API_MONTHLY_HOST = 'ws://monthly-worker-0:9765'
 
         # RED PANDA
         self.RED_PANDA_BROKER_0 = 'redpanda-0:9092'
