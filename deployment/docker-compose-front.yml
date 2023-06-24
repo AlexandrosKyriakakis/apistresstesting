@@ -1,0 +1,66 @@
+---
+version: '3.7'
+services:
+    linux-machine-for-testing:
+        image: ubuntu
+        container_name: linux-machine-for-testing
+        networks:
+            - my_network
+        #ipv4_address: 172.28.0.4
+        #aliases:
+        #  - my_alias_a
+        entrypoint:
+            - bash
+            - -c
+            - |
+              apt-get update &&
+              apt-get install -y wget &&
+              apt-get install -y iputils-ping &&
+              apt -y install zsh &&
+              apt -y install git &&
+              sh -c "$(wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)" &&
+              apt-get install curl -y &&
+              apt-get install unzip -y &&
+              curl -LO https://github.com/redpanda-data/redpanda/releases/latest/download/rpk-linux-amd64.zip &&
+              mkdir -p ~/.local/bin &&
+              unzip rpk-linux-amd64.zip -d ~/rpk &&
+              apt-get install -y postgresql-client &&
+              tail -f /dev/null
+
+    grafana:
+        image: grafana/grafana:latest
+        volumes:
+            - ./grafana/dashboards:/etc/grafana/dashboards
+        ports:
+            - 3001:3000 # TODO Update Ports
+        networks:
+            - my_network
+
+    dataviz:
+        image: metabase/metabase:latest
+        container_name: metabase
+        restart: always
+        environment:
+            MB_DB_TYPE: postgres
+            MB_DB_DBNAME: metabase
+            MB_DB_PORT: 5432
+            MB_DB_USER: metabase
+            MB_DB_PASS: db_password
+            MB_DB_HOST: db
+            MB_DB_FILE: /metabase-data/metabase.db
+        volumes:
+            - dataviz_data:/metabase-data
+        ports:
+            - 3000:3000
+        networks:
+            - my_network
+
+
+volumes:
+    dataviz_data:
+networks:
+    my_network:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 172.28.0.0/16
