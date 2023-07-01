@@ -553,7 +553,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(data_total_requests_processed_total{job=\"data-worker\"}[$__rate_interval]))",
+          "expr": "sum(data_total_requests_processed_total{job=\"data-worker\"})",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -618,7 +618,32 @@
           },
           "unit": "bytes"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "__systemRef": "hideSeriesFrom",
+            "matcher": {
+              "id": "byNames",
+              "options": {
+                "mode": "exclude",
+                "names": [
+                  "sum(data_total_bytes_received_total{job=\"data-worker\"})"
+                ],
+                "prefix": "All except:",
+                "readOnly": true
+              }
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": true
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -647,7 +672,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(data_total_bytes_received_total{job=\"data-worker\"}[$__rate_interval]))",
+          "expr": "sum(data_total_bytes_received_total{job=\"data-worker\"})",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -657,12 +682,106 @@
       "type": "timeseries"
     },
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 34
+      },
+      "id": 30,
+      "interval": "1s",
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum(data_total_bytes_received_total{job=\"data-worker\"}) / sum(data_total_requests_processed_total{job=\"data-worker\"})",
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "[Data Worker]: Average Bytes Per Request",
+      "type": "timeseries"
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 34
+        "y": 43
       },
       "id": 6,
       "panels": [],
@@ -728,9 +847,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
+        "w": 12,
         "x": 0,
-        "y": 35
+        "y": 44
       },
       "id": 22,
       "interval": "1s",
@@ -753,7 +872,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(daily_total_requests_processed_total{job=\"daily-worker\"}[$__rate_interval]))",
+          "expr": "sum(daily_total_requests_processed_total{job=\"daily-worker\"})",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -822,9 +941,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 35
+        "w": 12,
+        "x": 12,
+        "y": 44
       },
       "id": 21,
       "interval": "1s",
@@ -847,7 +966,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(daily_total_bytes_received_total{job=\"daily-worker\"}[$__rate_interval]))",
+          "expr": "sum(daily_total_bytes_received_total{job=\"daily-worker\"})",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -916,11 +1035,11 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 35
+        "w": 24,
+        "x": 0,
+        "y": 52
       },
-      "id": 28,
+      "id": 31,
       "interval": "1s",
       "options": {
         "legend": {
@@ -941,13 +1060,13 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(daily_total_bytes_after_process_total{job=\"daily-worker\"}[$__rate_interval]))",
+          "expr": "sum(daily_total_bytes_received_total{job=\"daily-worker\"}) / sum(daily_total_requests_processed_total{job=\"daily-worker\"})",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "[Daily Worker]: Total Bytes After Process",
+      "title": "[Daily Worker]: Average Bytes Per Request",
       "type": "timeseries"
     },
     {
@@ -974,7 +1093,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 43
+        "y": 60
       },
       "id": 5,
       "interval": "1s",
@@ -1057,7 +1176,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 43
+        "y": 60
       },
       "id": 2,
       "interval": "1s",
@@ -1140,7 +1259,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 51
+        "y": 68
       },
       "id": 1,
       "interval": "1s",
@@ -1205,7 +1324,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 61
+        "y": 78
       },
       "id": 8,
       "panels": [],
@@ -1271,9 +1390,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
+        "w": 12,
         "x": 0,
-        "y": 62
+        "y": 79
       },
       "id": 23,
       "interval": "1s",
@@ -1296,7 +1415,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(weekly_total_requests_processed_total{job=\"weekly-worker\"}[$__rate_interval]))",
+          "expr": "sum(weekly_total_requests_processed_total{job=\"weekly-worker\"})",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -1365,9 +1484,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 62
+        "w": 12,
+        "x": 12,
+        "y": 79
       },
       "id": 24,
       "interval": "1s",
@@ -1390,7 +1509,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(weekly_total_bytes_received_total{job=\"weekly-worker\"}[$__rate_interval]))",
+          "expr": "sum(weekly_total_bytes_received_total{job=\"weekly-worker\"})",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -1459,11 +1578,11 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 62
+        "w": 24,
+        "x": 0,
+        "y": 87
       },
-      "id": 27,
+      "id": 32,
       "interval": "1s",
       "options": {
         "legend": {
@@ -1484,13 +1603,13 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(weekly_total_bytes_after_process_total{job=\"weekly-worker\"}[$__rate_interval]))",
+          "expr": "sum(weekly_total_bytes_received_total{job=\"weekly-worker\"}) / sum(weekly_total_requests_processed_total{job=\"weekly-worker\"})",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "[Weekly Worker]: Total Bytes After Process",
+      "title": "[Weekly Worker]: Total Bytes Received",
       "type": "timeseries"
     },
     {
@@ -1517,7 +1636,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 70
+        "y": 95
       },
       "id": 9,
       "interval": "1s",
@@ -1600,7 +1719,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 70
+        "y": 95
       },
       "id": 10,
       "interval": "1s",
@@ -1683,7 +1802,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 78
+        "y": 103
       },
       "id": 11,
       "interval": "1s",
@@ -1748,7 +1867,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 88
+        "y": 113
       },
       "id": 12,
       "panels": [],
@@ -1814,9 +1933,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
+        "w": 12,
         "x": 0,
-        "y": 89
+        "y": 114
       },
       "id": 25,
       "interval": "1s",
@@ -1839,7 +1958,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(monthly_total_requests_processed_total{job=\"monthly-worker\"}[$__rate_interval]))",
+          "expr": "sum(monthly_total_requests_processed_total{job=\"monthly-worker\"})",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -1908,9 +2027,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 89
+        "w": 12,
+        "x": 12,
+        "y": 114
       },
       "id": 26,
       "interval": "1s",
@@ -1933,7 +2052,7 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(monthly_total_bytes_received_total{job=\"monthly-worker\"}[$__rate_interval]))",
+          "expr": "sum(monthly_total_bytes_received_total{job=\"monthly-worker\"})",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -2002,11 +2121,11 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 89
+        "w": 24,
+        "x": 0,
+        "y": 122
       },
-      "id": 29,
+      "id": 33,
       "interval": "1s",
       "options": {
         "legend": {
@@ -2027,13 +2146,13 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(monthly_total_bytes_after_process_total{job=\"monthly-worker\"}[$__rate_interval]))",
+          "expr": "sum(monthly_total_bytes_received_total{job=\"monthly-worker\"}) / sum(monthly_total_requests_processed_total{job=\"monthly-worker\"})",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "[Monthly Worker]: Total Bytes After Process",
+      "title": "[Monthly Worker]: Total Bytes Received",
       "type": "timeseries"
     },
     {
@@ -2060,7 +2179,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 97
+        "y": 130
       },
       "id": 13,
       "interval": "1s",
@@ -2143,7 +2262,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 97
+        "y": 130
       },
       "id": 14,
       "interval": "1s",
@@ -2226,7 +2345,7 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 105
+        "y": 138
       },
       "id": 15,
       "interval": "1s",
@@ -2301,6 +2420,6 @@
   "timezone": "",
   "title": "API Stress Testing",
   "uid": "c079e44a-5812-4b2e-bb6b-e78abf715c99",
-  "version": 9,
+  "version": 15,
   "weekStart": ""
 }
