@@ -73,6 +73,42 @@ def get_next_date_num(date: datetime.date) -> tuple[datetime.date, int]:
     return date + datetime.timedelta(days=days_left + 1), days_left + 1
 
 
+# Alternative with caching
+# def pull_all_load_data_aux():
+#     env = Env()
+#
+#     # start_date = datetime.datetime.fromisoformat(env.DATA_START_DATE)
+#     start_date = datetime.datetime.fromisoformat(env.DATA_TEST_DATE)  # TODO REMOVE
+#
+#     while start_date < datetime.datetime.today():
+#         next_date, num_of_days = get_next_date_num(start_date)
+#         if env.COUNTRY == '':
+#             for country in COUNTRIES.values():
+#                 yield get_total_load(country, start_date, num_of_days).content
+#         else:
+#             yield get_total_load(env.COUNTRY, start_date, num_of_days).content, env.COUNTRY, start_date
+#
+#         start_date = next_date
+#
+#
+# def pull_all_load_data():
+#     all_data = []
+#     for data, country, date in pull_all_load_data_aux():
+#         all_data.append((country, date, data))
+#
+#     for country, date, data in all_data:
+#         # Total data processed
+#         DATA_TOTAL_BYTES_RECEIVED.inc(sys.getsizeof(data))
+#         DATA_TOTAL_REQUESTS_PROCESSED.inc()
+#
+#         # Starting point for metrics TODO this is not working properly
+#         current_time_micros = time.time_ns()
+#         FINAL_DELAY.labels(
+#             country=country + '_CTY_CTY', date=date.strftime('%Y-%m-%d')
+#         ).set(current_time_micros)
+#         yield data
+
+
 def pull_all_load_data():
     env = Env()
 
