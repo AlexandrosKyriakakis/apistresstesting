@@ -180,18 +180,19 @@ def red_panda_flow():
 def orchestrator_flow():
     @async_time_histogram(WEEKLY_FORWARD_TIME)
     async def server(websocket, path):
-        data: bytes = await websocket.recv()
-        model = parse_data(data)
-        await websocket.send(orjson.dumps(model))
-        save_to_db(model)
+        async for data in websocket:
+            model = parse_data(data)
+            await websocket.send(orjson.dumps(model))
+            if model:
+                save_to_db(model)
 
-        # End point for metrics
-        current_time_micros = time.time_ns()
-        FINAL_DELAY.labels(
-            country=model[0]['city'], date=model[0]['date'].strftime('%Y-%m-%d')
-        ).set(current_time_micros)
+                # End point for metrics
+                current_time_micros = time.time_ns()
+                FINAL_DELAY.labels(
+                    country=model[0]['city'], date=model[0]['date'].strftime('%Y-%m-%d')
+                ).set(current_time_micros)
 
-    start_server = websockets.serve(server, '0.0.0.0', cfg.WSS_PORT)
+    start_server = websockets.serve(server, '0.0.0.0', cfg.WSS_PORT, ping_interval=None)
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()
 
@@ -199,19 +200,23 @@ def orchestrator_flow():
 def serialised_orchestrator_flow():
     @async_time_histogram(WEEKLY_FORWARD_TIME)
     async def server(websocket, path):
-        data: bytes = await websocket.recv()
-        model = parse_data(data)
-        async with websockets.connect(cfg.API_MONTHLY_HOST) as monthly_websocket:
-            await monthly_websocket.send(orjson.dumps(model))
-        save_to_db(model)
+        monthly_websocket = await websockets.connect(
+            cfg.API_MONTHLY_HOST, ping_interval=None
+        )
+        async for data in websocket:
+            model = parse_data(data)
+            if model:
+                await monthly_websocket.send(orjson.dumps(model))
+                save_to_db(model)
 
-        # End point for metrics
-        current_time_micros = time.time_ns()
-        FINAL_DELAY.labels(
-            country=model[0]['city'], date=model[0]['date'].strftime('%Y-%m-%d')
-        ).set(current_time_micros)
+                # End point for metrics
+                current_time_micros = time.time_ns()
+                FINAL_DELAY.labels(
+                    country=model[0]['city'], date=model[0]['date'].strftime('%Y-%m-%d')
+                ).set(current_time_micros)
+        await monthly_websocket.close()
 
-    start_server = websockets.serve(server, '0.0.0.0', cfg.WSS_PORT)
+    start_server = websockets.serve(server, '0.0.0.0', cfg.WSS_PORT, ping_interval=None)
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()
 
@@ -219,17 +224,18 @@ def serialised_orchestrator_flow():
 def async_orchestrator_flow():
     @async_time_histogram(WEEKLY_FORWARD_TIME)
     async def server(websocket, path):
-        data: bytes = await websocket.recv()
-        model = parse_data_rpk(data)
-        save_to_db(model)
+        async for data in websocket:
+            model = parse_data_rpk(data)
+            if model:
+                save_to_db(model)
 
-        # End point for metrics
-        current_time_micros = time.time_ns()
-        FINAL_DELAY.labels(
-            country=model[0]['city'], date=model[0]['date'].strftime('%Y-%m-%d')
-        ).set(current_time_micros)
+                # End point for metrics
+                current_time_micros = time.time_ns()
+                FINAL_DELAY.labels(
+                    country=model[0]['city'], date=model[0]['date'].strftime('%Y-%m-%d')
+                ).set(current_time_micros)
 
-    start_server = websockets.serve(server, '0.0.0.0', cfg.WSS_PORT)
+    start_server = websockets.serve(server, '0.0.0.0', cfg.WSS_PORT, ping_interval=None)
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()
 

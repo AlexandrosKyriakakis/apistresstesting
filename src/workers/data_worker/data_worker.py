@@ -164,58 +164,81 @@ def red_panda_flow():
 
 
 def orchestrator_flow():
-    for data in pull_all_load_data():
+    async def client():
+        daily_websocket = await websockets.connect(
+            cfg.API_DAILY_HOST, ping_interval=None
+        )
+        weekly_websocket = await websockets.connect(
+            cfg.API_WEEKLY_HOST, ping_interval=None
+        )
+        monthly_websocket = await websockets.connect(
+            cfg.API_MONTHLY_HOST, ping_interval=None
+        )
 
-        async def client():
-            async with websockets.connect(cfg.API_DAILY_HOST) as daily_websocket:
-                await daily_websocket.send(data)
-                daily_data: bytes = await daily_websocket.recv()
-            async with websockets.connect(cfg.API_WEEKLY_HOST) as weekly_websocket:
-                await weekly_websocket.send(daily_data)
-                weekly_data: bytes = await weekly_websocket.recv()
-            async with websockets.connect(cfg.API_MONTHLY_HOST) as monthly_websocket:
-                await monthly_websocket.send(weekly_data)
-
-        async def save():
+        for data in pull_all_load_data():
+            await daily_websocket.send(data)
+            daily_data: bytes = await daily_websocket.recv()
+            if not daily_data:
+                continue
+            await weekly_websocket.send(daily_data)
+            weekly_data: bytes = await weekly_websocket.recv()
+            await monthly_websocket.send(weekly_data)
             save_to_db(data)
 
-        asyncio.get_event_loop().run_until_complete(asyncio.gather(client(), save()))
+        await daily_websocket.close()
+        await weekly_websocket.close()
+        await monthly_websocket.close()
+
+    asyncio.get_event_loop().run_until_complete(client())
 
 
 def serialised_orchestrator_flow():
-    for data in pull_all_load_data():
-
-        async def client():
-            async with websockets.connect(cfg.API_DAILY_HOST) as daily_websocket:
-                await daily_websocket.send(data)
-
-        async def save():
+    async def client():
+        daily_websocket = await websockets.connect(
+            cfg.API_DAILY_HOST, ping_interval=None
+        )
+        for data in pull_all_load_data():
+            await daily_websocket.send(data)
             save_to_db(data)
 
-        asyncio.get_event_loop().run_until_complete(asyncio.gather(client(), save()))
+        await daily_websocket.close()
+
+    asyncio.get_event_loop().run_until_complete(client())
 
 
 def async_orchestrator_flow():
-    for data in pull_all_load_data():
+    async def client():
+        daily_websocket = await websockets.connect(
+            cfg.API_DAILY_HOST, ping_interval=None
+        )
+        weekly_websocket = await websockets.connect(
+            cfg.API_WEEKLY_HOST, ping_interval=None
+        )
+        monthly_websocket = await websockets.connect(
+            cfg.API_MONTHLY_HOST, ping_interval=None
+        )
 
-        async def send_daily():
-            async with websockets.connect(cfg.API_DAILY_HOST) as daily_websocket:
+        for data in pull_all_load_data():
+
+            async def send_daily():
                 await daily_websocket.send(data)
 
-        async def send_weekly():
-            async with websockets.connect(cfg.API_WEEKLY_HOST) as weekly_websocket:
+            async def send_weekly():
                 await weekly_websocket.send(data)
 
-        async def send_monthly():
-            async with websockets.connect(cfg.API_MONTHLY_HOST) as monthly_websocket:
+            async def send_monthly():
                 await monthly_websocket.send(data)
 
-        async def save():
-            save_to_db(data)
+            async def save():
+                save_to_db(data)
 
-        asyncio.get_event_loop().run_until_complete(
-            asyncio.gather(send_daily(), send_weekly(), send_monthly(), save())
-        )
+            await asyncio.gather(send_daily(), send_weekly(), send_monthly(), save())
+
+        await daily_websocket.close()
+        await weekly_websocket.close()
+        await monthly_websocket.close()
+
+    asyncio.get_event_loop().run_until_complete(client())
 
 
 def sleep_to_sync_workers():
