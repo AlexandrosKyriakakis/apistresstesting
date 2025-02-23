@@ -8,7 +8,8 @@
 
 ## Thesis Link
 
-- **Full Thesis PDF:** [**Performance Investigation of Various Microservice Architectures**](documents/Performance%20Investigation%20of%20Various%20Microservice%20Architectures.pdf)  
+- **Full Thesis PDF:** [**Performance Investigation of Various Microservice Architectures**](documents/Performance_Investigation_of_various_Microservice_Architectures.pdf)
+- **Presentation:** [**Performance Investigation of Various Microservice Architectures Presentation**](documents/Performance_Investigation_of_various_Microservice_Architectures.pptx)
 - **Online Publication:** [artemis.cslab.ece.ntua.gr (NTUA Thesis Repository)](http://artemis.cslab.ece.ntua.gr:8080/jspui/handle/123456789/18763)
 
 ## Technologies & Infrastructure
@@ -18,7 +19,6 @@ This project leverages a broad set of technologies and infrastructure components
 - ![Python](https://img.shields.io/badge/Python-3.10-blue?style=flat&logo=python&logoColor=white) **Python** – Core language for implementing services and orchestrators.  
 - ![FastAPI](https://img.shields.io/badge/FastAPI-Framework-009688?style=flat&logo=fastapi&logoColor=white) **FastAPI** – Web framework for building RESTful API endpoints.  
 - ![Docker](https://img.shields.io/badge/Docker-Containerization-2496ED?style=flat&logo=docker&logoColor=white) **Docker** – Containerization of all microservices for consistency and scalability.  
-- ![Docker Compose](https://img.shields.io/badge/Docker_Compose-Multi-container-blue?style=flat&logo=docker&logoColor=white) **Docker Compose** – Manages multi-container environments.  
 - ![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Message_Broker-FF6600?style=flat&logo=rabbitmq&logoColor=white) **RabbitMQ** – AMQP message broker used for microservice communication.  
 - ![Redpanda](https://img.shields.io/badge/Redpanda-Streaming_Platform-EE0000?style=flat&logo=red%20hat&logoColor=white) **Redpanda** – Kafka-compatible streaming platform for event-driven services.  
 - ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-336791?style=flat&logo=postgresql&logoColor=white) **PostgreSQL** – Database for storing performance test results.  
