@@ -44,9 +44,9 @@ class Env:
         self.DB_PASSWORD = 'db_password'
 
         # WORKERS
-        self.DATA_HOST = 'http://10.0.2.13/api/v3/data/'
-        self.DATA_REQUEST = 'entsoeactualtotalload/'
-        self.DATA_API_KEY = 'ASLDKJASDJK2534S'
+        self.DATA_HOST = ''  # API to get energy data
+        self.DATA_REQUEST = ''
+        self.DATA_API_KEY = ''
         self.DATA_START_DATE = '2014-08-24'
         self.DATA_TEST_DATE = '2019-08-24'
 
