@@ -11,6 +11,7 @@
 - **Full Thesis PDF:** [**Performance Investigation of Various Microservice Architectures**](documents/Performance_Investigation_of_various_Microservice_Architectures.pdf)
 - **Presentation:** [**Performance Investigation of Various Microservice Architectures Presentation**](documents/Performance_Investigation_of_various_Microservice_Architectures.pptx)
 - **Online Publication:** [artemis.cslab.ece.ntua.gr (NTUA Thesis Repository)](http://artemis.cslab.ece.ntua.gr:8080/jspui/handle/123456789/18763)
+- **Advisor:** [Vassilios Vescoukis](https://scholar.google.com/citations?user=1y8pf8IAAAAJ)
 
 ## Technologies & Infrastructure
 
