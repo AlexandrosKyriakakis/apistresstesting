@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**Performance Investigation of Various Microservice Architectures** is a diploma thesis project that examines how different software architecture paradigms affect the performance of web services. It provides a comparative analysis of monolithic systems, Service-Oriented Architectures (SOA), and microservices, with a particular focus on the increasingly popular microservices approach. The project implements **five distinct microservice architectural variants** (spanning centralized orchestration and event-driven choreography patterns) and evaluates their performance under identical conditions. By stress-testing each architecture and measuring key metrics, the study highlights how design choices impact throughput, latency, scalability, and failure tolerance.
+**Performance Investigation of Various Microservice Architectures** is a diploma thesis project of Alexandros Kyriakakis (NTUA, July 2023) that examines how different software architecture paradigms affect the performance of web services. It provides a comparative analysis of monolithic systems, Service-Oriented Architectures (SOA), and microservices, with a particular focus on the increasingly popular microservices approach. The project implements **five distinct microservice architectural variants** (spanning centralized orchestration and event-driven choreography patterns) and evaluates their performance under identical conditions. By stress-testing each architecture and measuring key metrics, the study highlights how design choices impact throughput, latency, scalability, and failure tolerance.
 
 **Key findings** reveal that different architectures come with unique trade-offs. For example, an event-streaming **choreography** approach using **Redpanda** excelled at handling high-volume data, whereas a **RabbitMQ** message broker ensured stable performance under high load. Meanwhile, an **orchestrator-driven** microservices design simplified service coordination but introduced state management complexities. This research provides actionable insights for engineers selecting architecture styles based on real-world needs.
 
@@ -11,7 +11,7 @@
 - **Full Thesis PDF:** [**Performance Investigation of Various Microservice Architectures**](documents/Performance_Investigation_of_various_Microservice_Architectures.pdf)
 - **Presentation:** [**Performance Investigation of Various Microservice Architectures Presentation**](documents/Performance_Investigation_of_various_Microservice_Architectures.pptx)
 - **Online Publication:** [artemis.cslab.ece.ntua.gr (NTUA Thesis Repository)](http://artemis.cslab.ece.ntua.gr:8080/jspui/handle/123456789/18763)
-- **Advisor:** [Vassilios Vescoukis](https://scholar.google.com/citations?user=1y8pf8IAAAAJ)
+- **Advisor:** [**Vassilios Vescoukis**](https://scholar.google.com/citations?user=1y8pf8IAAAAJ)
 
 ## Technologies & Infrastructure
 
