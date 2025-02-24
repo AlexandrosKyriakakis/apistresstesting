@@ -41,7 +41,7 @@ Ensure you have **Docker** and **Docker Compose** installed before proceeding.
 
 ### Clone the Repository
 ```sh
-git clone https://github.com/yourusername/your-repo.git  
+git clone https://github.com/AlexandrosKyriakakis/apistresstesting.git
 cd your-repo
 ```
 
